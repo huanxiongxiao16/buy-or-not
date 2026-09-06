@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f4ee" />
+  <meta name="description" content="把想买的东西发给朋友群众评审：买、不许买、还是冷静一下。" />
+  <title>买不买 · 群众评审器</title>
+  <style>
+    :root{
+      --bg:#f7f4ee;--card:#fffdf9;--ink:#1c1c1c;--muted:#77736b;--line:#ded8ce;
+      --soft:#eee8df;--yes:#e7f4e8;--no:#f6e7e5;--wait:#f5efd9;
+      font-family:ui-rounded,"SF Pro Rounded","PingFang SC","Microsoft YaHei",system-ui,sans-serif
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink)}
+    button,input,textarea,select{font:inherit}
+    button{touch-action:manipulation}
+    .w{max-width:720px;margin:auto;padding:20px 16px 60px}
+    .top{display:flex;gap:9px;align-items:center;margin-bottom:14px}
+    .brand{font-size:22px;font-weight:900}
+    .tag{font-size:11px;border:1px solid var(--line);border-radius:99px;padding:5px 9px;color:var(--muted)}
+    .account-btn{margin-left:auto;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 11px;font-size:12px;font-weight:900;max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#ebe6dd;padding:5px;border-radius:16px;margin-bottom:18px}
+    .nav button{border:0;background:transparent;border-radius:12px;padding:10px 6px;font-weight:900;color:var(--muted);cursor:pointer;font-size:12px}
+    .nav button.active{background:var(--card);color:var(--ink);box-shadow:0 2px 10px #0000000a}
+    .hero{padding:24px 2px}
+    .hero h1{font-size:46px;line-height:1;letter-spacing:-2px;margin:4px 0 14px}
+    .sub{color:var(--muted);line-height:1.65}
+    .eye{font-size:10px;font-weight:900;letter-spacing:1.5px;color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:0 8px 25px #00000008}
+    form{display:grid;gap:14px}
+    label{display:grid;gap:6px}
+    label span{font-size:12px;font-weight:800;color:#625e57}
+    input,textarea,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:14px;background:#fff;outline:none}
+    input:focus,textarea:focus,select:focus{border-color:#9a9286;box-shadow:0 0 0 3px #00000008}
+    .g{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{border:0;border-radius:14px;padding:14px 16px;font-weight:900;cursor:pointer}
+    .btn:disabled{opacity:.55;cursor:default}
+    .pri{background:#222;color:#fff}
+    .sec{background:var(--soft)}
+    .danger{background:#f6e7e5}
+    .hidden{display:none!important}
+    .share{display:flex;gap:8px}
+    .share input{font-size:11px}
+    .head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+    .head h1{font-size:29px;margin:4px 0;letter-spacing:-1px}
+    .price{font-size:27px;font-weight:900;white-space:nowrap}
+    .reason{background:#f3efe8;padding:13px;border-radius:15px;line-height:1.6}
+    .meta{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
+    .link{display:inline-block;margin-top:12px;font-weight:900;text-decoration:none}
+    .choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .choice{border:1px solid var(--line);background:#fff;border-radius:15px;padding:17px 8px;font-weight:900;cursor:pointer}
+    .choice.y{background:var(--yes)}
+    .choice.n{background:var(--no)}
+    .choice.wt{background:var(--wait)}
+    .status{min-height:18px;margin-top:9px;font-size:12px;color:var(--muted);line-height:1.5}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .st{background:#f4f0ea;border-radius:15px;padding:13px;text-align:center}
+    .st b{display:block;font-size:26px}
+    .st span{font-size:11px;color:var(--muted)}
+    .bar{height:12px;background:#e7e2da;border-radius:99px;overflow:hidden;margin-top:14px}
+    .fill{height:100%;background:#222;width:0;transition:width .2s}
+    .cap{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:6px}
+    .v,.status-pill{font-size:12px;font-weight:900;padding:7px 9px;border-radius:99px;background:var(--soft);white-space:nowrap}
+    .comments{border-top:1px solid var(--line);margin-top:18px;padding-top:8px}
+    .comment{padding:9px 0;border-bottom:1px dashed var(--line)}
+    .comment:last-child{border-bottom:0}
+    .comment b{font-size:12px}
+    .comment p{margin:5px 0 0;line-height:1.5}
+    .back{display:inline-block;margin-bottom:12px;color:var(--muted);text-decoration:none;font-size:12px}
+    .list-head{padding:18px 2px 10px}
+    .list-head h1{font-size:34px;letter-spacing:-1.5px;margin:4px 0 8px}
+    .summary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+    .sum{background:#efeae2;border-radius:18px;padding:16px}
+    .sum b{display:block;font-size:25px;margin-top:4px}
+    .sum span{font-size:11px;color:var(--muted)}
+    .record{display:block;color:inherit;text-decoration:none;padding:18px}
+    .record-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .record h3{margin:3px 0 6px;font-size:18px}
+    .record-price{font-size:18px;font-weight:900;white-space:nowrap}
+    .record-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;margin-top:9px}
+    .record-votes{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
+    .mini{font-size:11px;background:#f2eee7;border-radius:99px;padding:6px 8px}
+    .empty{text-align:center;padding:42px 20px}
+    .empty .emoji{font-size:42px;margin-bottom:10px}
+    .loading{color:var(--muted);padding:28px 4px;text-align:center}
+    .sync-banner{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#f1ece4;border-radius:16px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:var(--muted)}
+    .sync-banner b{color:var(--ink)}
+    .small-btn{border:0;background:#222;color:#fff;border-radius:99px;padding:8px 11px;font-size:11px;font-weight:900;white-space:nowrap}
+    .overlay{position:fixed;inset:0;background:#0008;z-index:50;display:flex;align-items:flex-end;justify-content:center;padding:12px}
+    .modal{width:min(520px,100%);background:var(--card);border-radius:26px;padding:20px;max-height:88vh;overflow:auto;box-shadow:0 20px 80px #0004}
+    .modal-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:15px}
+    .modal-top h2{margin:0}
+    .x{border:0;background:var(--soft);width:36px;height:36px;border-radius:50%;font-weight:900}
+    .auth-box{display:grid;gap:12px}
+    .auth-note{background:#f3efe8;border-radius:14px;padding:11px 12px;font-size:12px;color:var(--muted);line-height:1.55}
+    .profile-line{font-size:12px;color:var(--muted);margin-bottom:12px}
+    .profile-line b{display:block;color:var(--ink);font-size:15px;margin-bottom:2px}
+    footer{font-size:10px;color:#99948c;padding:24px 2px}
+    @media(max-width:580px){
+      .hero h1{font-size:40px}.g,.choices{grid-template-columns:1fr}.head{display:block}.price{margin-top:7px}
+      .record-top{display:block}.record-price{margin-top:8px}.summary{grid-template-columns:1fr 1fr}
+      .nav button{font-size:11px;padding:10px 3px}
+    }
+  </style>
+</head>
+<body>
+<main class="w">
+  <div class="top">
+    <div class="brand">买不买</div>
+    <div class="tag">群众评审器</div>
+    <button id="accountBtn" class="account-btn" type="button">登录</button>
+  </div>
+
+  <div id="homeNav" class="nav hidden">
+    <button id="navCreate" class="active" type="button">发起审批</button>
+    <button id="navMine" type="button">我的审批</button>
+    <button id="navJoined" type="button">我参与的</button>
+  </div>
+
+  <section id="create" class="hidden">
+    <div class="hero">
+      <div class="eye">PURCHASE CONTROL</div>
+      <h1>这东西到底<br>该不该买？</h1>
+      <div class="sub">提交申请，把同一个链接扔给所有朋友。让群众替你拦住冲动消费，或者集体怂恿你下单。</div>
+    </div>
+
+    <form id="form" class="card">
+      <label><span>商品名称 *</span><input id="title" required maxlength="80" placeholder="例如：680 元音乐剧票"></label>
+      <div class="g">
+        <label><span>价格 *</span><input id="price" required type="number" min="0" step="0.01" placeholder="680"></label>
+        <label><span>通过门槛</span>
+          <select id="threshold">
+            <option value="50">简单多数 · 50%</option>
+            <option value="60">稍微严格 · 60%</option>
+            <option value="67">委员会模式 · 2/3</option>
+            <option value="75">铁面无私 · 75%</option>
+          </select>
+        </label>
+      </div>
+      <label><span>为什么想买</span><textarea id="reason" rows="4" maxlength="500" placeholder="我真的很想要.jpg"></textarea></label>
+      <label><span>商品链接（可选）</span><input id="url" type="url" placeholder="https://..."></label>
+      <div class="g">
+        <label><span>截止时间</span><input id="deadline" type="datetime-local"></label>
+        <label><span>申请人昵称</span><input id="creator" maxlength="30" placeholder="小浣熊"></label>
+      </div>
+      <button class="btn pri" type="submit">发起群众评审</button>
+    </form>
+
+    <div id="made" class="card hidden">
+      <div class="eye">CREATED</div>
+      <h2>申请已建立 🎉</h2>
+      <p class="sub">这个链接发给多少朋友都行，大家进入的是同一场投票。</p>
+      <div class="share"><input id="sl" readonly><button id="copy" class="btn sec" type="button">复制</button></div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button id="open" class="btn sec" type="button">打开投票页</button>
+        <button id="share" class="btn sec" type="button">系统分享</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="mine" class="hidden">
+    <div class="list-head">
+      <div class="eye">MY APPROVALS</div>
+      <h1>我的审批</h1>
+      <div class="sub">你自己发起过的购买申请，都在这里。</div>
+    </div>
+    <div id="mineSync"></div>
+    <div id="mineSummary" class="summary hidden">
+      <div class="sum"><span>累计申请</span><b id="mineCount">0</b></div>
+      <div class="sum"><span>申请总金额</span><b id="mineAmount">¥0</b></div>
+    </div>
+    <div id="mineList"><div class="loading">正在翻你的消费档案…</div></div>
+  </section>
+
+  <section id="joined" class="hidden">
+    <div class="list-head">
+      <div class="eye">MY VOTES</div>
+      <h1>我参与的</h1>
+      <div class="sub">以前帮别人审批过什么，也可以在这里翻出来。</div>
+    </div>
+    <div id="joinedSync"></div>
+    <div id="joinedList"><div class="loading">正在翻你的群众代表履职记录…</div></div>
+  </section>
+
+  <section id="vote" class="hidden">
+    <a class="back" href="?">← 返回首页</a>
+    <article class="card">
+      <div class="head">
+        <div><div class="eye">PENDING APPROVAL</div><h1 id="pt">加载中…</h1></div>
+        <div id="pp" class="price"></div>
+      </div>
+      <p id="pr" class="reason hidden"></p>
+      <div class="meta"><span id="pc"></span><span id="pd"></span></div>
+      <a id="pu" class="link hidden" target="_blank" rel="noopener">查看商品 ↗</a>
+    </article>
+
+    <section class="card">
+      <div class="eye">CAST YOUR VOTE</div>
+      <h2>你的意见是？</h2>
+      <div class="choices">
+        <button class="choice" data-c="yes">✅ 买！</button>
+        <button class="choice" data-c="no">❌ 不许买</button>
+        <button class="choice" data-c="wait">🤔 冷静一下</button>
+      </div>
+      <div class="g" style="margin-top:12px">
+        <label><span>署名（可选）</span><input id="name" maxlength="30" placeholder="匿名群众"></label>
+        <label><span>审批意见（可选）</span><input id="comment" maxlength="180" placeholder="理由：丑。"></label>
+      </div>
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="card">
+      <div class="head">
+        <div><div class="eye">LIVE RESULTS</div><h2>群众意见</h2></div>
+        <span id="verdict" class="v">等待开票</span>
+      </div>
+      <div class="stats">
+        <div class="st"><b id="yc">0</b><span>✅ 买</span></div>
+        <div class="st"><b id="nc">0</b><span>❌ 不买</span></div>
+        <div class="st"><b id="wc">0</b><span>🤔 冷静</span></div>
+      </div>
+      <div class="bar"><div id="fill" class="fill"></div></div>
+      <div class="cap"><span id="rate">赞成率 —</span><span id="th">通过门槛 50%</span></div>
+      <div id="comments" class="comments hidden"></div>
+    </section>
+  </section>
+
+  <section id="err" class="card hidden">
+    <h2>这个审批链接好像失效了</h2>
+    <p id="errmsg" class="sub"></p>
+    <a href="?">重新发起一个</a>
+  </section>
+
+  <footer>Personal Internal Control Framework™ · 朋友的意见仅供娱乐，钱包最终还是你的。</footer>
+</main>
+
+<div id="accountModal" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-top">
+      <div><div class="eye">ACCOUNT</div><h2 id="accountTitle">登录 / 注册</h2></div>
+      <button id="closeAccount" class="x" type="button">×</button>
+    </div>
+
+    <div id="authLoggedOut" class="auth-box">
+      <div class="auth-note">不登录也可以正常发起和投票。注册后可以跨设备同步「我的审批」和「我参与的」。邮箱只作为登录账号使用，这一版不发验证码、不发确认邮件。</div>
+      <label><span>邮箱</span><input id="authEmail" type="email" autocomplete="email" placeholder="name@example.com"></label>
+      <label><span>密码</span><input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="72" placeholder="至少 8 位"></label>
+      <div class="g">
+        <button id="loginPassword" class="btn pri" type="button">登录</button>
+        <button id="registerPassword" class="btn sec" type="button">注册</button>
+      </div>
+      <div id="authStatus" class="status"></div>
+    </div>
+
+    <div id="authLoggedIn" class="hidden">
+      <div class="profile-line"><b id="profileEmail"></b><span>已登录 · 记录会跟着账号走</span></div>
+      <div class="auth-box">
+        <label><span>昵称</span><input id="profileNickname" maxlength="30" placeholder="例如：小浣熊"></label>
+        <button id="saveProfile" class="btn pri" type="button">保存昵称</button>
+        <button id="claimAgain" class="btn sec" type="button">重新认领本机游客记录</button>
+        <button id="logoutBtn" class="btn danger" type="button">退出登录</button>
+      </div>
+      <div id="profileStatus" class="status"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA="https://cmsmtwmyreyacocfbrok.supabase.co";
+const PUB="sb_publishable_4rmXD84-U0zgIV2oTdtBWg_Iq2A7li4";
+const API=SUPA+"/functions/v1/buy-or-not-api";
+const REGISTER=SUPA+"/functions/v1/buy-or-not-register";
+const AUTH=SUPA+"/auth/v1";
+const AUTH_KEY="buy_or_not_auth_v1";
+const $=x=>document.getElementById(x);
+const params=new URLSearchParams(location.search);
+const pid=params.get("id");
+let purchase=null;
+let currentUser=null;
+
+function randomDeviceId(){
+  if(globalThis.crypto?.randomUUID) return crypto.randomUUID().replaceAll("-","");
+  const bytes=new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
+}
+function getDeviceId(){
+  const key="buy_or_not_device_v2";
+  try{
+    let id=localStorage.getItem(key);
+    if(!id){id=randomDeviceId();localStorage.setItem(key,id)}
+    return id;
+  }catch(_){}
+  try{
+    const m=document.cookie.match(/(?:^|;\s*)buy_or_not_device=([^;]+)/);
+    if(m) return decodeURIComponent(m[1]);
+    const id=randomDeviceId();
+    document.cookie="buy_or_not_device="+encodeURIComponent(id)+"; Max-Age=31536000; Path=/; SameSite=Lax; Secure";
+    return id;
+  }catch(_){return randomDeviceId()}
+}
+const device=getDeviceId();
+
+function loadSession(){
+  try{return JSON.parse(localStorage.getItem(AUTH_KEY)||"null")}catch(_){return null}
+}
+function saveSession(s){
+  const expiresAt=Math.floor(Date.now()/1000)+Number(s.expires_in||3600);
+  const saved={access_token:s.access_token,refresh_token:s.refresh_token,expires_at:expiresAt,user:s.user||null};
+  localStorage.setItem(AUTH_KEY,JSON.stringify(saved));
+  return saved;
+}
+function clearSession(){
+  try{localStorage.removeItem(AUTH_KEY)}catch(_){}
+  currentUser=null;
+}
+async function authRequest(path,body,token=null){
+  const headers={"apikey":PUB,"Content-Type":"application/json"};
+  if(token)headers.Authorization="Bearer "+token;
+  const r=await fetch(AUTH+path,{method:"POST",headers,body:body?JSON.stringify(body):undefined});
+  let data={};
+  try{data=await r.json()}catch(_){}
+  if(!r.ok)throw new Error(data.msg||data.message||data.error_description||data.error||("Auth HTTP "+r.status));
+  return data;
+}
+async function refreshSession(s){
+  try{
+    const data=await authRequest("/token?grant_type=refresh_token",{refresh_token:s.refresh_token});
+    return saveSession(data);
+  }catch(_){
+    clearSession();
+    return null;
+  }
+}
+async function accessToken(){
+  let s=loadSession();
+  if(!s)return null;
+  if(Number(s.expires_at||0)*1000<Date.now()+60000)s=await refreshSession(s);
+  return s?.access_token||null;
+}
+async function api(action,payload={}){
+  const token=await accessToken();
+  const headers={"Content-Type":"application/json"};
+  if(token)headers.Authorization="Bearer "+token;
+  const r=await fetch(API,{method:"POST",headers,body:JSON.stringify({action,device,...payload})});
+  let data={};
+  try{data=await r.json()}catch(_){}
+  if(r.status===401&&token){clearSession();await updateAccountUI()}
+  if(!r.ok)throw new Error(data.error||("请求失败 HTTP "+r.status));
+  return data;
+}
+
+const money=n=>new Intl.NumberFormat("zh-CN",{style:"currency",currency:"CNY",maximumFractionDigits:2}).format(+n||0);
+const date=s=>s?new Date(s).toLocaleString("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+function defaultDeadline(){
+  const d=new Date(Date.now()+864e5),q=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+q(d.getMonth()+1)+"-"+q(d.getDate())+"T"+q(d.getHours())+":"+q(d.getMinutes());
+}
+function show(x){
+  ["create","mine","joined","vote","err"].forEach(a=>$(a).classList.add("hidden"));
+  $(x).classList.remove("hidden");
+}
+function setNav(which){
+  $("navCreate").classList.toggle("active",which==="create");
+  $("navMine").classList.toggle("active",which==="mine");
+  $("navJoined").classList.toggle("active",which==="joined");
+}
+function voteLabel(v){return v==="yes"?"✅ 买":v==="no"?"❌ 不买":v==="wait"?"🤔 冷静":"—"}
+
+async function updateAccountUI(){
+  const token=await accessToken();
+  if(!token){
+    currentUser=null;
+    $("accountBtn").textContent="登录";
+    $("authLoggedOut").classList.remove("hidden");
+    $("authLoggedIn").classList.add("hidden");
+    $("accountTitle").textContent="登录 / 注册";
+    return;
+  }
+  try{
+    const r=await api("me");
+    currentUser=r.user;
+    if(!currentUser)throw new Error("No user");
+    const label=currentUser.nickname||currentUser.email?.split("@")[0]||"我的账号";
+    $("accountBtn").textContent=label;
+    $("authLoggedOut").classList.add("hidden");
+    $("authLoggedIn").classList.remove("hidden");
+    $("accountTitle").textContent="我的账号";
+    $("profileEmail").textContent=currentUser.email||"";
+    $("profileNickname").value=currentUser.nickname||"";
+    if($("creator")&&!$("creator").value&&currentUser.nickname)$("creator").value=currentUser.nickname;
+    if($("name")&&!$("name").value&&currentUser.nickname)$("name").value=currentUser.nickname;
+  }catch(_){
+    clearSession();
+    $("accountBtn").textContent="登录";
+  }
+}
+
+function syncBannerHtml(){
+  if(currentUser){
+    return '<div class="sync-banner"><div><b>☁️ 已同步到账号</b><br>换手机用同一账号登录也能看到。</div><button class="small-btn" type="button" data-account>账号</button></div>';
+  }
+  return '<div class="sync-banner"><div><b>📱 当前仅保存在这个浏览器</b><br>登录后可以跨设备同步，已有记录也会自动认领。</div><button class="small-btn" type="button" data-account>登录同步</button></div>';
+}
+function wireAccountButtons(root=document){
+  root.querySelectorAll("[data-account]").forEach(b=>b.onclick=openAccount);
+}
+
+function recordCard(x,joined=false){
+  const a=document.createElement("a");
+  a.className="card record";
+  a.href="?id="+encodeURIComponent(x.id);
+
+  let statusText="等待开票",statusBg="var(--soft)";
+  if(x.status==="passed"){statusText=x.ended?"✅ 最终通过":"✅ 当前通过";statusBg="var(--yes)"}
+  else if(x.status==="rejected"){statusText=x.ended?"❌ 最终驳回":"❌ 当前未通过";statusBg="var(--no)"}
+
+  const top=document.createElement("div");top.className="record-top";
+  const left=document.createElement("div");
+  const eye=document.createElement("div");eye.className="eye";eye.textContent=x.ended?"CLOSED":"IN REVIEW";
+  const h=document.createElement("h3");h.textContent=x.title;
+  const pill=document.createElement("span");pill.className="status-pill";pill.style.background=statusBg;pill.textContent=statusText;
+  left.append(eye,h,pill);
+  const price=document.createElement("div");price.className="record-price";price.textContent=money(x.price);
+  top.append(left,price);
+
+  const votes=document.createElement("div");votes.className="record-votes";
+  [["✅ 买",x.yes],["❌ 不买",x.no],["🤔 冷静",x.wait]].forEach(([label,n])=>{
+    const s=document.createElement("span");s.className="mini";s.textContent=label+" "+n;votes.appendChild(s);
+  });
+  if(joined){
+    const mine=document.createElement("span");mine.className="mini";mine.textContent="我的票："+voteLabel(x.my_vote);votes.appendChild(mine);
+  }
+
+  const meta=document.createElement("div");meta.className="record-meta";
+  if(joined&&x.creator_name){const c=document.createElement("span");c.textContent="申请人："+x.creator_name;meta.appendChild(c)}
+  const created=document.createElement("span");created.textContent=(joined?"投票：":"发起：")+date(joined?x.voted_at:x.created_at);meta.appendChild(created);
+  if(x.deadline){const d=document.createElement("span");d.textContent="截止："+date(x.deadline);meta.appendChild(d)}
+  const rate=document.createElement("span");rate.textContent=x.rate==null?"赞成率 —":"赞成率 "+x.rate+"%";meta.appendChild(rate);
+
+  a.append(top,votes,meta);
+  return a;
+}
+
+async function loadMine(){
+  show("mine");setNav("mine");
+  $("mineSync").innerHTML=syncBannerHtml();wireAccountButtons($("mineSync"));
+  $("mineList").innerHTML='<div class="loading">正在翻你的消费档案…</div>';
+  try{
+    const r=await api("mine"),items=r.items||[];
+    $("mineCount").textContent=items.length;
+    $("mineAmount").textContent=money(items.reduce((s,x)=>s+(+x.price||0),0));
+    $("mineSummary").classList.remove("hidden");
+    if(!items.length){
+      $("mineList").innerHTML='<div class="card empty"><div class="emoji">🗂️</div><h3>还没有审批记录</h3><p class="sub">先去发起一条，之后它就会自动出现在这里。</p></div>';
+      return;
+    }
+    const frag=document.createDocumentFragment();items.forEach(x=>frag.appendChild(recordCard(x,false)));$("mineList").replaceChildren(frag);
+  }catch(e){
+    $("mineList").innerHTML='<div class="card"><h3>历史记录暂时加载失败</h3><p class="sub"></p></div>';
+    $("mineList").querySelector(".sub").textContent=e.message||e;
+  }
+}
+async function loadJoined(){
+  show("joined");setNav("joined");
+  $("joinedSync").innerHTML=syncBannerHtml();wireAccountButtons($("joinedSync"));
+  $("joinedList").innerHTML='<div class="loading">正在翻你的群众代表履职记录…</div>';
+  try{
+    const r=await api("participated"),items=r.items||[];
+    if(!items.length){
+      $("joinedList").innerHTML='<div class="card empty"><div class="emoji">🗳️</div><h3>还没参与过审批</h3><p class="sub">等朋友把购物链接扔过来，你就可以开始行使否决权了。</p></div>';
+      return;
+    }
+    const frag=document.createDocumentFragment();items.forEach(x=>frag.appendChild(recordCard(x,true)));$("joinedList").replaceChildren(frag);
+  }catch(e){
+    $("joinedList").innerHTML='<div class="card"><h3>参与记录暂时加载失败</h3><p class="sub"></p></div>';
+    $("joinedList").querySelector(".sub").textContent=e.message||e;
+  }
+}
+
+async function refresh(){
+  const r=await api("results",{id:pid});
+  const y=+r.yes||0,n=+r.no||0,w=+r.wait||0,decisive=y+n,rate=decisive?Math.round(y/decisive*100):0;
+  $("yc").textContent=y;$("nc").textContent=n;$("wc").textContent=w;$("fill").style.width=rate+"%";
+  $("rate").textContent=decisive?"赞成率 "+rate+"%（冷静票不计入）":"赞成率 —";
+  const v=$("verdict"),th=+(purchase?.threshold||r.threshold||50);
+  const ended=(purchase?.deadline||r.deadline)&&Date.now()>new Date(purchase?.deadline||r.deadline).getTime();
+  if(!decisive){v.textContent=ended?"已截止 · 无有效票":"等待开票";v.style.background="var(--soft)"}
+  else if(rate>=th){v.textContent=ended?"✅ 最终通过":"✅ 当前通过";v.style.background="var(--yes)"}
+  else{v.textContent=ended?"❌ 最终驳回":"❌ 当前未通过";v.style.background="var(--no)"}
+
+  document.querySelectorAll(".choice").forEach(b=>{
+    b.classList.toggle("y",r.my_vote==="yes"&&b.dataset.c==="yes");
+    b.classList.toggle("n",r.my_vote==="no"&&b.dataset.c==="no");
+    b.classList.toggle("wt",r.my_vote==="wait"&&b.dataset.c==="wait");
+  });
+
+  const box=$("comments");box.innerHTML="";
+  (r.comments||[]).forEach(x=>{
+    const d=document.createElement("div"),b=document.createElement("b"),q=document.createElement("p");
+    d.className="comment";
+    b.textContent=(x.voter_name||"匿名群众")+" · "+voteLabel(x.choice);
+    q.textContent=x.comment||"";d.append(b,q);box.appendChild(d);
+  });
+  box.classList.toggle("hidden",!box.children.length);
+}
+
+function openAccount(){
+  $("accountModal").classList.remove("hidden");
+  updateAccountUI();
+}
+function closeAccount(){$("accountModal").classList.add("hidden")}
+$("accountBtn").onclick=openAccount;
+$("closeAccount").onclick=closeAccount;
+$("accountModal").onclick=e=>{if(e.target===$("accountModal"))closeAccount()};
+
+async function finishPasswordLogin(email,password){
+  const data=await authRequest("/token?grant_type=password",{email,password});
+  saveSession(data);
+  const claim=await api("claim");
+  await updateAccountUI();
+  $("authStatus").textContent="";
+  $("profileStatus").textContent=(claim.claimed_purchases||claim.claimed_votes)
+    ?"✅ 登录成功，并认领了 "+claim.claimed_purchases+" 条申请、"+claim.claimed_votes+" 张历史票。"
+    :"✅ 登录成功。";
+}
+
+$("loginPassword").onclick=async()=>{
+  const email=$("authEmail").value.trim().toLowerCase();
+  const password=$("authPassword").value;
+  if(!email||!password){$("authStatus").textContent="邮箱和密码都要填。";return}
+  $("loginPassword").disabled=true;
+  $("registerPassword").disabled=true;
+  $("authStatus").textContent="正在登录…";
+  try{
+    await finishPasswordLogin(email,password);
+  }catch(e){
+    $("authStatus").textContent="登录失败：邮箱或密码不对。";
+  }finally{
+    $("loginPassword").disabled=false;
+    $("registerPassword").disabled=false;
+  }
+};
+
+$("registerPassword").onclick=async()=>{
+  const email=$("authEmail").value.trim().toLowerCase();
+  const password=$("authPassword").value;
+  if(!email){$("authStatus").textContent="先填邮箱捏。";return}
+  if(password.length<8){$("authStatus").textContent="密码至少 8 位。";return}
+  $("loginPassword").disabled=true;
+  $("registerPassword").disabled=true;
+  $("authStatus").textContent="正在注册…";
+  try{
+    const r=await fetch(REGISTER,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email,password})
+    });
+    let data={};
+    try{data=await r.json()}catch(_){}
+    if(!r.ok)throw new Error(data.error||("注册失败 HTTP "+r.status));
+    $("authStatus").textContent="注册成功，正在自动登录…";
+    await finishPasswordLogin(email,password);
+  }catch(e){
+    $("authStatus").textContent="注册失败："+(e.message||e);
+  }finally{
+    $("loginPassword").disabled=false;
+    $("registerPassword").disabled=false;
+  }
+};
+
+$("saveProfile").onclick=async()=>{
+  $("saveProfile").disabled=true;$("profileStatus").textContent="保存中…";
+  try{
+    const r=await api("update_profile",{nickname:$("profileNickname").value.trim()});
+    await updateAccountUI();
+    $("profileStatus").textContent="✅ 昵称已保存。";
+  }catch(e){$("profileStatus").textContent="保存失败："+(e.message||e)}
+  finally{$("saveProfile").disabled=false}
+};
+
+$("claimAgain").onclick=async()=>{
+  $("claimAgain").disabled=true;$("profileStatus").textContent="正在认领…";
+  try{
+    const r=await api("claim");
+    $("profileStatus").textContent="✅ 完成：认领 "+r.claimed_purchases+" 条申请、"+r.claimed_votes+" 张票。";
+  }catch(e){$("profileStatus").textContent="认领失败："+(e.message||e)}
+  finally{$("claimAgain").disabled=false}
+};
+
+$("logoutBtn").onclick=async()=>{
+  const token=await accessToken();
+  try{if(token)await authRequest("/logout",null,token)}catch(_){}
+  clearSession();await updateAccountUI();
+  $("profileStatus").textContent="";
+  closeAccount();
+  if(!pid&&$("mine").classList.contains("hidden")===false)loadMine();
+  if(!pid&&$("joined").classList.contains("hidden")===false)loadJoined();
+};
+
+(async()=>{
+  await updateAccountUI();
+
+  if(!pid){
+    $("homeNav").classList.remove("hidden");
+    show("create");setNav("create");$("deadline").value=defaultDeadline();
+
+    $("navCreate").onclick=()=>{show("create");setNav("create")};
+    $("navMine").onclick=()=>loadMine();
+    $("navJoined").onclick=()=>loadJoined();
+
+    $("form").onsubmit=async e=>{
+      e.preventDefault();
+      const b=e.submitter;b.disabled=true;b.textContent="建立中…";
+      try{
+        const purchaseData={
+          title:$("title").value.trim(),price:+$("price").value,
+          reason:$("reason").value.trim()||null,product_url:$("url").value.trim()||null,
+          deadline:$("deadline").value?new Date($("deadline").value).toISOString():null,
+          threshold:+$("threshold").value,creator_name:$("creator").value.trim()||null
+        };
+        const r=await api("create",{purchase:purchaseData});
+        const link=location.origin+location.pathname+"?id="+r.id;
+        $("sl").value=link;$("made").classList.remove("hidden");$("made").scrollIntoView({behavior:"smooth"});
+        $("copy").onclick=async()=>{await navigator.clipboard.writeText(link);$("copy").textContent="已复制";setTimeout(()=>$("copy").textContent="复制",1200)};
+        $("open").onclick=()=>location.href=link;
+        $("share").onclick=async()=>{
+          if(navigator.share)await navigator.share({title:"帮我审批一下：该不该买？",text:purchaseData.title+" · "+money(purchaseData.price),url:link});
+          else{await navigator.clipboard.writeText(link);alert("链接已复制，可以直接发给朋友啦。")}
+        };
+      }catch(x){alert("创建失败："+(x.message||x))}
+      finally{b.disabled=false;b.textContent="发起群众评审"}
+    };
+  }else{
+    show("vote");
+    try{
+      const r=await api("get",{id:pid});purchase=r.purchase;
+      $("pt").textContent=purchase.title;$("pp").textContent=money(purchase.price);
+      if(purchase.reason){$("pr").textContent=purchase.reason;$("pr").classList.remove("hidden")}
+      if(purchase.creator_name)$("pc").textContent="申请人："+purchase.creator_name;
+      if(purchase.deadline)$("pd").textContent="截止："+date(purchase.deadline);
+      $("th").textContent="通过门槛 "+purchase.threshold+"%";
+      if(purchase.product_url){$("pu").href=purchase.product_url;$("pu").classList.remove("hidden")}
+      if(currentUser?.nickname&&!$("name").value)$("name").value=currentUser.nickname;
+      await refresh();setInterval(()=>refresh().catch(()=>{}),7000);
+    }catch(x){show("err");$("errmsg").textContent=x.message||x}
+
+    document.querySelectorAll(".choice").forEach(b=>b.onclick=async()=>{
+      if(!purchase)return;
+      if(purchase.deadline&&Date.now()>new Date(purchase.deadline).getTime()){$("status").textContent="这场审批已经截止啦。";return}
+      b.disabled=true;$("status").textContent="正在记票…";
+      try{
+        await api("vote",{id:pid,choice:b.dataset.c,voter_name:$("name").value.trim()||null,comment:$("comment").value.trim()||null});
+        $("status").textContent=currentUser
+          ?"✅ 已记票。同一账号无论换几个设备都只算这一票。"
+          :"✅ 已记票。同一浏览器再投会更新这一票；登录后还能跨设备同步。";
+        try{await refresh()}catch(e){console.warn(e);$("status").textContent="✅ 已记票。结果刷新稍慢，几秒后会自动更新。"}
+      }catch(x){$("status").textContent="投票失败："+(x.message||x)}
+      finally{b.disabled=false}
+    });
+  }
+})();
+</script>
+</body>
+</html>
